@@ -1,0 +1,17 @@
+{
+  "schedulers": [
+    "none", "cosine_annealing"
+  ],
+  "learning_rates": [
+    0.0001, 0.001, 0.01
+  ],
+  "optimizers": [
+    "adam", "sgd"
+  ],
+  "momentums": [
+    0.1, 0.5, 0.9
+  ],
+  "batch_sizes": [
+    4, 8, 16
+  ]
+}

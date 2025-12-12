@@ -1,0 +1,63 @@
+{
+  "checkpoint_parameters": [
+    {
+      "model_title": "NUS-8_Canon1DsMkIII Log RGB",
+      "save_model_checkpoint": 200
+    }
+  ],
+  "data_parameters": [
+    {
+      "dataset_name": "NUS-8_Canon1DsMkIII",
+      "num_buckets": 128,
+      "histograms_per_image": 4,
+      "color_space": "LOG",
+      "histogram_saturation_method": "LOG",
+      "clip_upper_bound": 255,
+      "projection_type": "STATIC",
+      "num_folds": 3,
+      "image_scale_factor": 0.75,
+      "sample_square_size": 1
+    }
+  ],
+  "threshold_parameters": [
+    {
+      "blue_threshold_8bit": 1,
+      "green_threshold_8bit": 1,
+      "red_threshold_8bit": 1
+    }
+  ],
+  "model_parameters": [
+    {
+     "start_channel_size": 8,
+      "kernel_size": 5,
+      "stride": 2,
+      "pool_kernel": 2,
+      "pool_stride": 2,
+      "convolutions_post_pool": 3,
+      "convolutions_post_concat": 2,
+      "includes_intermediate_linear_layer": true,
+      "intermediate_linear_layer_features": 35,
+      "p_dropout_pre_concat": 0.25,
+      "p_dropout_post_concat": 0.5,
+      "second_pool_layer": true,
+      "includes_global_avg_pool": true,
+      "stride_2_pooling": true,
+      "pre_concat_structure_number": 3,
+      "post_concat_structure_number": 1,
+      "second_pool_after_second_conv": false,
+      "uses_1x1_layer": false
+    }
+  ],
+  "learning_parameters": [
+    {
+      "scheduler": "none",
+      "optimizer": "adam",
+      "learning_rate": 0.0001,
+      "momentum": 0.5,
+      "epochs": 200,
+      "batch_size": 8,
+      "random_state": 42,
+      "loss_function": "angular"
+    }
+  ]
+}

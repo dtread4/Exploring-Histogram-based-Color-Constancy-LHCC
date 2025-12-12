@@ -1,0 +1,21 @@
+{
+  "Gehler-Shi Reprocessed": [
+    {
+      "images_path": "",
+      "ground_truth_path": "",
+      "cross_fold_path": "",
+      "coordinates_path": ""
+    }
+  ],
+  "NUS-8": [
+    {
+      "data_path": "",
+      "cross_fold_file_name": ""
+    }
+  ],
+  "SimpleCube++": [
+    {
+      "data_path": ""
+    }
+  ]
+}
