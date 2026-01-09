@@ -42,7 +42,7 @@ def train_from_start(parameters, output_dir, valid_fold_number, preloaded_histog
                                   batch_size=parameters.batch_size, shuffle=True, pin_memory=torch.cuda.is_available())
     test_loader = get_dataloader(parameters=parameters, train_data=False, dataset=image_dataset,
                                  preloaded_histograms=preloaded_histograms,
-                                 batch_size=parameters.batch_size, shuffle=True, pin_memory=torch.cuda.is_available())
+                                 batch_size=parameters.batch_size, shuffle=False, pin_memory=torch.cuda.is_available())
 
     # Storage for train and test loss (for graphing)
     train_losses = []
