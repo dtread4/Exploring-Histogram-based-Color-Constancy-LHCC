@@ -1,8 +1,8 @@
 # Exploring Histogram-based Color Constancy
 
-The goal of this repository is to provide the core code associated with the paper "Exploring Histogram-based Color Constancy" that appears in the BMVC 2025.
+The goal of this repository is to provide the core code associated with the paper "Exploring Histogram-based Color Constancy" that appears in the BMVC 2025 by David R. Treadwell IV, Yunxuan (Kaya) Rao, Daniel Bi, and Bruce A. Maxwell from Northeastern University.
 
-If you would like to read our paper, It is provided in this repository directory (along with the poster we presented and a short video overview), or you may find it on the official BMVC proceedings page: [BMVC 2025 paper link](https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_404/paper.pdf)
+If you would like to read our paper, it is provided in this repository directory (along with the poster we presented and a short video overview), or you may find it on the official BMVC proceedings page: [BMVC 2025 paper link](https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_404/paper.pdf)
 
 ## <ins>General Repository Structure</ins>
 ### File structure
@@ -84,11 +84,11 @@ Data available at: https://github.com/Visillect/CubePlusPlus?tab=readme-ov-file
     
 Data will be downloaded pre-sorted into train and test sets. Just extract from .zip file. You can use our script for creating a validation set **.\constancy_model\simplecube_validation_split.py** (more details below).
 
-Model weights for the best log RGB and linear RGB-trained SimpleCube++ models are available in this Google drive link: [model weights](https://drive.google.com/drive/folders/1yoijgbBqgqewBePntk56KXtHOOuHM_vM)
+Model weights for the best log RGB and linear RGB-trained SimpleCube++ models are available in this Google Drive link: [model weights](https://drive.google.com/drive/folders/1yoijgbBqgqewBePntk56KXtHOOuHM_vM)
 
 ## <ins>How to Run</ins>
 
-First, create a conda environment using the requirements.txt file included. (Or create a virtual environment using your preferred method). This method is tested and successful for Python 3.12 and 3.13:
+First, create a conda environment using the requirements.txt file included. (Or create a virtual environment using your preferred method.) This method is tested and successful for Python 3.12 and 3.13:
 
 ```
 conda create --name LHCC
@@ -154,7 +154,7 @@ While there are many parameters in this section, they were put into the paramete
 
 ### Learning parameters
 
-Note that the learning parameters may require additional tuning per model/dataset/camera. We tuned learning rate and batch size for each model, and ran a more comprehensive search for SimpleCube++.
+Note that the learning parameters may require additional tuning per model/dataset/camera. We tuned the learning rate and batch size for each model, and ran a more comprehensive search for SimpleCube++.
 
 
 - **scheduler**: Use "none" or "cosine_annealing".
@@ -174,7 +174,7 @@ A few suggested improvements or next steps, if you would like to contribute:
 
 1. Better command line argument handling with an argument parser
 2. Update from JSON to YAML files
-3. Simplifying the network structure/parameter pairing (e.g. a more hard-coded model structure to trim the parameter files)
+3. Simplifying the network structure/parameter pairing (e.g., a more hard-coded model structure to trim the parameter files)
 
 
 ## <ins>Citation</ins>
