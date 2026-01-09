@@ -114,6 +114,7 @@ def get_two_channel_histogram_projection(hist_3d, channel_1, channel_2):
 def get_plane_projected_histogram(image, plane, origin, blue_lb, green_lb, red_lb, hist_ub, buckets):
     """
     Gets the histogram of an image projected onto a plane
+    Note that this was designed for use with the 111 plane
     :param image:    The image to get the projected histogram of
     :param plane:    The plane to project the histogram onto
     :param origin:   The origin of the plane
@@ -125,16 +126,25 @@ def get_plane_projected_histogram(image, plane, origin, blue_lb, green_lb, red_l
     :return: The projected histogram
     """
     # Get the u and v axes
-    u_axis, v_axis = build_planar_axes(plane, origin, blue_lb, red_lb, hist_ub)
+    u_axis, v_axis = build_planar_axes(plane, origin)
 
     # Get the points that bound the histogram
-    u_min_projected, u_max_projected = get_min_max_projected_boundaries(u_axis, blue_lb, green_lb, red_lb, hist_ub)
-    v_min_projected, v_max_projected = get_min_max_projected_boundaries(v_axis, blue_lb, green_lb, red_lb, hist_ub)
+    u_min_projected, u_max_projected = get_min_max_projected_boundaries(origin, u_axis, blue_lb, green_lb, red_lb, hist_ub)
+    v_min_projected, v_max_projected = get_min_max_projected_boundaries(origin, v_axis, blue_lb, green_lb, red_lb, hist_ub)
 
     # Project the image into the 111 space
-    u_indexes = np.dot(image, u_axis)
-    v_indexes = np.dot(image, v_axis)
-    projected_image = np.stack((u_indexes, v_indexes), axis=2).astype(np.float32)
+    u_projections = np.dot(image - origin, u_axis)
+    v_projections = np.dot(image - origin, v_axis)
+
+    # Apply mask so that image values outside the valid space are ignored
+    lb_mask = (
+        (image[..., BLUE_CHANNEL] >= blue_lb) &
+        (image[..., GREEN_CHANNEL] >= green_lb) &
+        (image[..., RED_CHANNEL] >= red_lb)
+    )
+    u_projections = np.where(lb_mask, u_projections, u_min_projected - 1) # Subtracting 1 pushes values where mask = False (below channel threshold) outside the valid range
+    v_projections = np.where(lb_mask, v_projections, v_min_projected - 1) # Subtracting 1 pushes values where mask = False (below channel threshold) outside the valid range
+    projected_image = np.stack((u_projections, v_projections), axis=2).astype(np.float32)
 
     # Get the projected histogram
     projected_histogram = cv2.calcHist(images=[projected_image], channels=[0, 1], mask=None,
@@ -144,37 +154,37 @@ def get_plane_projected_histogram(image, plane, origin, blue_lb, green_lb, red_l
     return projected_histogram
 
 
-def build_planar_axes(plane, origin, blue_lb, red_lb, upper_bound):
+def build_planar_axes(normal_plane, origin):
     """
     Builds the planar axis from a plane, an origin point, and the maximum value of the image to project
-    :param plane:       The plane to project onto
-    :param origin:      The origin of the plane
-    :param blue_lb:     Histogram range lower bound for blue channel
-    :param red_lb:      Histogram range lower bound for red channel
-    :param upper_bound: The upper bound of the image to project onto the plane
+    Note that this was designed for use with the 111 plane
+    :param normal_plane: The normal of the plane to project onto
+    :param origin:       The origin of the plane
     :return: The u and v axes of the projected plane
     """
-    normal_plane = plane / np.linalg.norm(plane)
-    green_axis_point = np.array([blue_lb, np.log(upper_bound), red_lb])
+    normalized_normal_plane = normal_plane / np.linalg.norm(normal_plane)
+    green_axis_point = np.array([0, 1, 0])
 
-    v_axis_unnormalized = project_3d_point(green_axis_point, origin, normal_plane) - origin
+    v_axis_unnormalized = project_3d_point(green_axis_point, origin, normalized_normal_plane) - origin
     v_axis = v_axis_unnormalized / np.linalg.norm(v_axis_unnormalized)
 
-    u_axis = np.cross(v_axis, normal_plane)
+    u_axis_unormalized = np.cross(normalized_normal_plane, v_axis)
+    u_axis = u_axis_unormalized / np.linalg.norm(u_axis_unormalized)
 
     return u_axis, v_axis
 
 
-def get_cube_boundaries(blue_lb, green_lb, red_lb, upper_bound):
+def get_cube_boundaries(origin, blue_lb, green_lb, red_lb, upper_bound):
     """
     Gets the boundary positions for the projection onto a plane
+    :param origin:      The origin of the plane
     :param blue_lb:     Histogram range lower bound for blue channel
     :param green_lb:    Histogram range lower bound for green channel
     :param red_lb:      Histogram range lower bound for red channel
     :param upper_bound: The upper bound of values in the image to project
     :return:
     """
-    # Define all possible points involving each channels' lower and upper bound, and return as numpy array
+    # Define all possible points involving each channels' lower and upper bound
     boundaries = []
     x_values = [blue_lb, upper_bound]
     y_values = [green_lb, upper_bound]
@@ -183,12 +193,17 @@ def get_cube_boundaries(blue_lb, green_lb, red_lb, upper_bound):
         for y in y_values:
             for z in z_values:
                 boundaries.append((x, y, z))
-    return np.array(boundaries)
+
+    # Subtract the origin to center each point correctly
+    boundaries = np.array(boundaries)
+    boundaries -= origin
+    return boundaries
 
 
-def get_min_max_projected_boundaries(axis, blue_lb, green_lb, red_lb, upper_bound):
+def get_min_max_projected_boundaries(origin, axis, blue_lb, green_lb, red_lb, upper_bound):
     """
     Calculates the minimum and maximum for the axis components on the project surface
+    :param origin:      The origin of the plane
     :param axis:        The axis to calculate the bounds for
     :param blue_lb:     Histogram range lower bound for blue channel
     :param green_lb:    Histogram range lower bound for green channel
@@ -197,27 +212,26 @@ def get_min_max_projected_boundaries(axis, blue_lb, green_lb, red_lb, upper_boun
     :return: The minimum and maximum values along the axis
     """
     # Get the cube boundaries
-    cube_boundaries = get_cube_boundaries(blue_lb, green_lb, red_lb, upper_bound)
+    cube_boundaries = get_cube_boundaries(origin, blue_lb, green_lb, red_lb, upper_bound)
 
     # Get the dot product of all cube boundaries with the axis
     dot_products = []
     for boundary_point in cube_boundaries:
-        dot_products.append(np.dot(boundary_point, axis))
+        dot_products.append(np.dot(boundary_point - origin, axis))
     return np.min(dot_products), np.max(dot_products)
 
 
-def project_3d_point(point_3d, origin, normal_plane):
+def project_3d_point(point_3d, plane_point, normalized_normal_plane):
     """
     Projects a 3d point onto a plane
-    :param point_3d:     The 3d point to project
-    :param origin:       The origin of the plane to project onto
-    :param normal_plane: The normal plane of the plane to project onto
-    :return:
+    :param point_3d:                The 3d point to project
+    :param plane_point:             A point on the plane being projected onto
+    :param normalized_normal_plane: The normalized normal of the plane to project onto
+    :return: The 3D point projected onto the plane
     """
-    difference = origin - point_3d
-    dot_product = np.dot(difference, normal_plane)
-    normal_magnitude_square = np.dot(normal_plane, normal_plane)
-    projected_point = point_3d - (dot_product / normal_magnitude_square) * normal_magnitude_square
+    difference = point_3d - plane_point 
+    dot_product = np.dot(difference, normalized_normal_plane) 
+    projected_point = point_3d - (dot_product * normalized_normal_plane)
     return projected_point
 
 
