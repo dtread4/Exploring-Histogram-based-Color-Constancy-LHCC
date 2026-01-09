@@ -149,18 +149,18 @@ class _PerHistogramBlock(nn.Module):
                                       stride=2,
                                       padding=padding)
 
-        # Second convolution
+        # Second convolution (default setup has stride = 1)
         self.conv2d_pre_2 = nn.Conv2d(in_channels=pre_concat_channels[1],
                                       out_channels=pre_concat_channels[2],
                                       kernel_size=parameters.kernel_size,
-                                      stride=2 if self.second_pool_after_second_conv else 1,
+                                      stride=1 if not self.second_pool_after_second_conv else 2,
                                       padding=padding)
 
-        # Add third convolution
+        # Add third convolution (default setup has stride = 2)
         self.conv2d_pre_3 = nn.Conv2d(in_channels=pre_concat_channels[2],
                                       out_channels=pre_concat_channels[3],
                                       kernel_size=parameters.kernel_size,
-                                      stride=1 if self.second_pool_after_second_conv else 2,
+                                      stride=2 if not self.second_pool_after_second_conv else 1,
                                       padding=padding)
 
         # Dropout layer for before the final convolution
